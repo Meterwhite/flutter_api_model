@@ -8,64 +8,75 @@
     - (outLoginUser)
 
 ## Getting started
-
-
-## Usage
+#### Installing
+```yaml
+dependencies:
+  flutter_api_model: latest_version
+```
+#### Importing
 ```dart
-doAsync() async {
-    LoginAPI api = await LoginAPI(inNickname: 'jack', inPassword: '12345',).execute();
-    if (api.hasError) {
-      alert(api.outError);
-    } else {
-      User? currentUser = api.outUser;
-      if(currentUser != null) {
-        pagePush();
-      } else {
-        alert('User does not exist');
-      }
-    }
+import 'package:flutter_api_model/flutter_api_model.dart';
+```
+
+### Using `await`
+```dart
+final model = await ProfileAPIModel(inUserId: '2024').start();
+if (model.hasError) {
+  final error = model.outError;
+} else {
+  final user = model.outUser;
 }
 ```
 
+### Using callback
 ```dart
-doSync() {
-    LoginAPI(inNickname: 'jack', inPassword: '12345').onComplete((api) {
-      if (api.hasError) {
-        alert(api.outError);
-      } else {
-        User? currentUser = api.outUser;
-        if (currentUser != null) {
-          pagePush();
-        } else {
-          alert('User does not exist');
-        }
-      }
-    }).execute();
-}
+ProfileAPIModel(inUserId: '2024').onComplete((model) {
+  if (!model.hasError) {
+    final user = model.outUser;
+  } else {
+    final error = model.outError;
+  }
+}).start();
+
 ```
-### class define
+
+### Class definition
 ```dart
-class LoginAPI extends ModelAPI<LoginAPI> {
-  LoginAPI({required this.inNickname, required this.inPassword});
+class ProfileAPIModel extends BaseAPI with model<ProfileAPIModel>, APIWithLoginNeed {
+  ProfileAPIModel({required this.inUserId});
 
-  String inNickname;
-
-  String inPassword;
-
+  /// Input parameter
+  String inUserId;
+  /// Output result
   User? outUser;
 
   @override
-  loading() async {
+  load() async {
     try {
-      outUser = await httpRequestUser();
+      final response = await dio.request('/user/profile');
+      outUser = User.jsonToUser(response.data['user']);
     } catch (e) {
       outError = e;
     } finally {
-      complete();
+      finalize();
     }
   }
 }
+
+/// Defines a base type if initialization work is needed
+class BaseAPI {
+  Dio dio = Dio();
+
+  BaseAPI() {
+    dio.options.baseUrl = 'https://base_url.com';
+    dio.options.headers = {'token': '2024'};
+  }
+}
+
+mixin APIWithLoginNeed {
+  bool hasPermission() {
+    return isLogin();
+  }
+}
+
 ```
-
-## Additional information
-

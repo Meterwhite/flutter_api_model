@@ -8,66 +8,75 @@
     - (outLoginUser)
 
 ## Getting started
-
-
-## Usage
-### await形式
+#### Installing
+```yaml
+dependencies:
+  flutter_api_model: latest_version
+```
+#### Importing
 ```dart
-final requestModel = await ProfileRequestModel(inUserId: '2024').execute();
-if (requestModel.hasError) {
-    final error = requestModel.outError;
+import 'package:flutter_api_model/flutter_api_model.dart';
+```
+
+### Using `await`
+```dart
+final model = await ProfileAPIModel(inUserId: '2024').start();
+if (model.hasError) {
+  final error = model.outError;
 } else {
-    final user = requestModel.outUser;
+  final user = model.outUser;
 }
 ```
-### 回调形式
+
+### Using callback
 ```dart
-ProfileRequestModel(inUserId: '2024').onComplete((model) {
-    if (!requestModel.hasError) {
-    final user = requestModel.outUser;
-    } else {
-    final error = requestModel.outError;
-    }
-}).execute();
+ProfileAPIModel(inUserId: '2024').onComplete((model) {
+  if (!model.hasError) {
+    final user = model.outUser;
+  } else {
+    final error = model.outError;
+  }
+}).start();
+
 ```
-### Class define
+
+### Class definition
 ```dart
-class ProfileRequestModel extends BaseRequest
-    with RequestModel<ProfileRequestModel>, RquestModelWithLoginNeed {
-  ProfileRequestModel({required this.inUserId});
+class ProfileAPIModel extends BaseAPI with model<ProfileAPIModel>, APIWithLoginNeed {
+  ProfileAPIModel({required this.inUserId});
 
+  /// Input parameter
   String inUserId;
-
+  /// Output result
   User? outUser;
 
   @override
-  loading() async {
+  load() async {
     try {
       final response = await dio.request('/user/profile');
       outUser = User.jsonToUser(response.data['user']);
     } catch (e) {
       outError = e;
     } finally {
-      complete();
+      finalize();
     }
   }
 }
 
-class BaseRequest {
+/// Defines a base type if initialization work is needed
+class BaseAPI {
   Dio dio = Dio();
 
-  BaseRequest() {
+  BaseAPI() {
     dio.options.baseUrl = 'https://base_url.com';
     dio.options.headers = {'token': '2024'};
   }
 }
 
-mixin RquestModelWithLoginNeed {
+mixin APIWithLoginNeed {
   bool hasPermission() {
     return isLogin();
   }
 }
+
 ```
-
-## Additional information
-
