@@ -13,7 +13,7 @@
 ## Usage
 ```dart
 doAsync() async {
-    LoginAPI api = await LoginAPI(inNickname: 'jack', inPassword: '12345',).launch();
+    LoginAPI api = await LoginAPI(inNickname: 'jack', inPassword: '12345',).execute();
     if (api.hasError) {
       alert(api.outError);
     } else {
@@ -40,7 +40,7 @@ doSync() {
           alert('User does not exist');
         }
       }
-    }).launch();
+    }).execute();
 }
 ```
 ### class define

@@ -1,23 +1,46 @@
+import 'package:flutter_request_model/src/request_model.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_model_api/flutter_model_api.dart';
+import 'package:dio/dio.dart';
 
-httpRequestUser() {}
+something() {}
 
-class User {}
+requestUser() {}
 
-class LoginAPI extends ModelAPI<LoginAPI> {
-  LoginAPI({required this.inNickname, required this.inPassword});
+mixin RquestModelWithLoginNeed {
+  bool hasPermission() {
+    bool isLogin = something();
+    return isLogin;
+  }
+}
 
-  String inNickname;
+class User {
+  static jsonToUser(String? json) {
+    return something();
+  }
+}
 
-  String inPassword;
+class BaseRequest {
+  Dio dio = Dio();
+
+  BaseRequest() {
+    dio.options.baseUrl = 'https://base_url.com';
+    dio.options.headers = {'token': 'my_token'};
+  }
+}
+
+class ProfileRequestModel extends BaseRequest
+    with RequestModel<ProfileRequestModel>, RquestModelWithLoginNeed {
+  ProfileRequestModel({required this.inUserId});
+
+  String inUserId;
 
   User? outUser;
 
   @override
   loading() async {
     try {
-      outUser = await httpRequestUser();
+      final response = await dio.request('/user/profile');
+      outUser = User.jsonToUser(response.data['user']);
     } catch (e) {
       outError = e;
     } finally {
@@ -28,17 +51,22 @@ class LoginAPI extends ModelAPI<LoginAPI> {
 
 void main() {
   test('adds one to input values', () async {
-    // LoginAPI(inNickname: 'jack', inPassword: '12345').onComplete((api) {
-    //   if (api.hasError) {
-    //     alert(api.outError);
-    //   } else {
-    //     User? currentUser = api.outUser;
-    //     if (currentUser != null) {
-    //       pagePush();
-    //     } else {
-    //       alert('User does not exist');
-    //     }
-    //   }
-    // }).launch();
+    final requestModel = ProfileRequestModel(inUserId: 'userId');
+
+    // await
+    await requestModel.execute();
+    if (!requestModel.hasError) {
+      final user = requestModel.outUser;
+    } else {
+      final error = requestModel.outError;
+    }
+    // closure
+    requestModel.onComplete((model) {
+      if (!requestModel.hasError) {
+        final user = requestModel.outUser;
+      } else {
+        final error = requestModel.outError;
+      }
+    }).execute();
   });
 }

@@ -11,58 +11,60 @@
 
 
 ## Usage
+### await形式
 ```dart
-doAsync() async {
-    LoginAPI api = await LoginAPI(inNickname: 'jack', inPassword: '12345',).launch();
-    if (api.hasError) {
-      alert(api.outError);
+final requestModel = await ProfileRequestModel(inUserId: '2024').execute();
+if (requestModel.hasError) {
+    final error = requestModel.outError;
+} else {
+    final user = requestModel.outUser;
+}
+```
+### 回调形式
+```dart
+ProfileRequestModel(inUserId: '2024').onComplete((model) {
+    if (!requestModel.hasError) {
+    final user = requestModel.outUser;
     } else {
-      User? currentUser = api.outUser;
-      if(currentUser != null) {
-        pagePush();
-      } else {
-        alert('User does not exist');
-      }
+    final error = requestModel.outError;
     }
-}
+}).execute();
 ```
-
+### Class define
 ```dart
-doSync() {
-    LoginAPI(inNickname: 'jack', inPassword: '12345').onComplete((api) {
-      if (api.hasError) {
-        alert(api.outError);
-      } else {
-        User? currentUser = api.outUser;
-        if (currentUser != null) {
-          pagePush();
-        } else {
-          alert('User does not exist');
-        }
-      }
-    }).launch();
-}
-```
-### class define
-```dart
-class LoginAPI extends ModelAPI<LoginAPI> {
-  LoginAPI({required this.inNickname, required this.inPassword});
+class ProfileRequestModel extends BaseRequest
+    with RequestModel<ProfileRequestModel>, RquestModelWithLoginNeed {
+  ProfileRequestModel({required this.inUserId});
 
-  String inNickname;
-
-  String inPassword;
+  String inUserId;
 
   User? outUser;
 
   @override
   loading() async {
     try {
-      outUser = await httpRequestUser();
+      final response = await dio.request('/user/profile');
+      outUser = User.jsonToUser(response.data['user']);
     } catch (e) {
       outError = e;
     } finally {
       complete();
     }
+  }
+}
+
+class BaseRequest {
+  Dio dio = Dio();
+
+  BaseRequest() {
+    dio.options.baseUrl = 'https://base_url.com';
+    dio.options.headers = {'token': '2024'};
+  }
+}
+
+mixin RquestModelWithLoginNeed {
+  bool hasPermission() {
+    return isLogin();
   }
 }
 ```

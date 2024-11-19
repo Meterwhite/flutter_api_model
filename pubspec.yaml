@@ -1,11 +1,11 @@
-name: flutter_model_api
+name: flutter_request_model
 description: Modeling of network requests,  which manages input parameters and output parameters, which follows the "In-Out" naming convention.
-version: 1.0.0
+version: 2.0.0
 homepage: https://github.com/hivedb/hive/tree/master/hive
 documentation: https://github.com/hivedb/hive/tree/master/hive
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -14,4 +14,5 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.0
+  flutter_lints: ^4.0.0
+  dio: ^5.6.0
