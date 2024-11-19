@@ -42,7 +42,7 @@ ProfileAPIModel(inUserId: '2024').onComplete((model) {
 
 ### Class definition
 ```dart
-class ProfileAPIModel extends BaseAPI with ModelAPI<ProfileAPIModel>, APIWithLoginNeed {
+class ProfileAPIModel extends BaseAPI<Map> with ModelAPI<ProfileAPIModel>, APIWithLoginNeed {
   ProfileAPIModel({required this.inUserId});
 
   /// Input parameter
@@ -54,7 +54,7 @@ class ProfileAPIModel extends BaseAPI with ModelAPI<ProfileAPIModel>, APIWithLog
   load() async {
     try {
       final response = await dio.request('/user/profile');
-      outUser = User.jsonToUser(response.data['user']);
+      outUser = User.converFrom(jsonObject);
     } catch (e) {
       outError = e;
     } finally {
@@ -64,12 +64,18 @@ class ProfileAPIModel extends BaseAPI with ModelAPI<ProfileAPIModel>, APIWithLog
 }
 
 /// Defines a base type if initialization work is needed
-class BaseAPI {
+class BaseAPI<T> {
   Dio dio = Dio();
+
+  T? jsonObject;
 
   BaseAPI() {
     dio.options.baseUrl = 'https://base_url.com';
     dio.options.headers = {'token': '2024'};
+  }
+
+  void fillJson(String jsonString) {
+    jsonObject = convert(jsonString);
   }
 }
 

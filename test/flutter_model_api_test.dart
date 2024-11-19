@@ -51,21 +51,21 @@ class User {
 
 void main() {
   test('adds one to input values', () async {
-    final requestModel = ProfileAPIModel(inUserId: 'userId');
+    final profileAPIModel = ProfileAPIModel(inUserId: 'userId');
 
     // await
-    await requestModel.start();
-    if (!requestModel.hasError) {
-      final user = requestModel.outUser;
+    await profileAPIModel.start();
+    if (!profileAPIModel.hasError) {
+      final user = profileAPIModel.outUser;
     } else {
-      final error = requestModel.outError;
+      final error = profileAPIModel.outError;
     }
     // closure
-    requestModel.onCompletion((model) {
-      if (!requestModel.hasError) {
-        final user = requestModel.outUser;
+    profileAPIModel.onCompletion((model) {
+      if (!profileAPIModel.hasError) {
+        final user = profileAPIModel.outUser;
       } else {
-        final error = requestModel.outError;
+        final error = profileAPIModel.outError;
       }
     }).start();
   });
