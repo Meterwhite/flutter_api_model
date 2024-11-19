@@ -42,7 +42,7 @@ ProfileAPIModel(inUserId: '2024').onComplete((model) {
 
 ### Class definition
 ```dart
-class ProfileAPIModel extends BaseAPI with model<ProfileAPIModel>, APIWithLoginNeed {
+class ProfileAPIModel extends BaseAPI with ModelAPI<ProfileAPIModel>, APIWithLoginNeed {
   ProfileAPIModel({required this.inUserId});
 
   /// Input parameter
