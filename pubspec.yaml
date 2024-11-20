@@ -1,6 +1,6 @@
 name: flutter_api_model
 description: Modeling of network requests,  which manages input parameters and output parameters, which follows the "In-Out" naming convention.
-version: 2.0.1
+version: 2.0.2
 homepage: https://github.com/Meterwhite/flutter_api_model
 documentation: https://github.com/Meterwhite/flutter_api_model
 
@@ -10,6 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  meta: any
 
 dev_dependencies:
   flutter_test:

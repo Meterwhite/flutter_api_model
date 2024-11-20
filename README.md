@@ -1,36 +1,32 @@
 ## Features
 `Modeling of network requests,  which manages input parameters and output parameters, which follows the "In-Out" naming convention.`
 
-### Naming rules:
-- The prefix of the input parameter: in
-    - (inUsername, inPassword)
-- The prefix of the return value: out
-    - (outLoginUser)
-
 ## Getting started
 #### Installing
+Add the following dependency to your pubspec.yaml file:
 ```yaml
 dependencies:
   flutter_api_model: latest_version
 ```
 #### Importing
+Import the package into your Dart code:
 ```dart
 import 'package:flutter_api_model/flutter_api_model.dart';
 ```
 
-### Using `await`
+## Supports both await and callback formats for flexibility.
+#### Using `await`
 ```dart
-final model = await ProfileAPIModel(inUserId: '2024').start();
+final model = await UserSearchAPIModel(inUserId: '2024').start();
 if (model.hasError) {
   final error = model.outError;
 } else {
   final user = model.outUser;
 }
 ```
-
-### Using callback
+#### Using callback
 ```dart
-ProfileAPIModel(inUserId: '2024').onComplete((model) {
+UserSearchAPIModel(inUserId: '2024').onComplete((model) {
   if (!model.hasError) {
     final user = model.outUser;
   } else {
@@ -40,11 +36,36 @@ ProfileAPIModel(inUserId: '2024').onComplete((model) {
 
 ```
 
-### Class definition
-```dart
-class ProfileAPIModel extends BaseAPI<Map> with ModelAPI<ProfileAPIModel>, APIWithLoginNeed {
-  ProfileAPIModel({required this.inUserId});
+## Class definition
+### Naming rules:
+- The prefix of the input parameter: in
+    - (inUsername, inPassword)
+- The prefix of the return value: out
+    - (outLoginUser)
 
+### There are three ways to define APIModel:
+#### 1. Using mixin:
+Ideal for scenarios without special initialization requirements.
+```dart
+class SomeAPIModel with APIModel<SomeAPIModel>
+```
+#### 2. Using inheritance:
+Suitable for defining a base network request class that extends `APIModel`.
+```dart
+class BaseRequestModel extends APIModel<SomeAPIModel>
+```
+#### 3. Using a combination of mixin and inheritance (recommended):
+Best for custom network requests, data processing, and separation of concerns. 
+For example, `BaseRequest` can handle Dio operations and data transformation, 
+while `APIModel` provides request flow and encapsulation.
+```dart
+class SomeAPIModel extends BaseRequest with APIModel<SomeAPIModel>
+```
+### Example: Defining `UserSearchAPIModel`:
+```dart
+class UserSearchAPIModel extends BaseRequest<Map> 
+      with APIModel<UserSearchAPIModel>, APIWithLoginNeed {
+  UserSearchAPIModel({required this.inUserId});
   /// Input parameter
   String inUserId;
   /// Output result
@@ -64,21 +85,30 @@ class ProfileAPIModel extends BaseAPI<Map> with ModelAPI<ProfileAPIModel>, APIWi
 }
 
 /// Defines a base type if initialization work is needed
-class BaseAPI<T> {
+/// Defining `BaseRequest` Class
+class BaseRequest<T> {
   Dio dio = Dio();
 
-  T? jsonObject;
+  T? data;
 
-  BaseAPI() {
+  int? code;
+
+  String? msg;
+
+  BaseRequest() {
     dio.options.baseUrl = 'https://base_url.com';
-    dio.options.headers = {'token': '2024'};
+    dio.options.headers = {'token': 'some_token'};
   }
 
-  void fillJson(String jsonString) {
-    jsonObject = convert(jsonString);
+  void fillData(Dio.Response response) {
+    data = getData(response);
+    code = response.statusCode;
+    msg  = getMsg(response);
   }
 }
 
+/// Defines a mixin to override the `hasPermission` method, blocking calls when the user is not logged in.
+/// Defining `APIWithLoginNeed` Mixin
 mixin APIWithLoginNeed {
   bool hasPermission() {
     return isLogin();
@@ -86,3 +116,8 @@ mixin APIWithLoginNeed {
 }
 
 ```
+
+## Using Versions Prior to Dart 3.0
+- [Go to the repository to download the source code](https://github.com/Meterwhite/flutter_api_model)
+- Manually import the `lib` folder and rename it to `flutter_api_model`
+- Locate the file `api_model.dart`, and change `abstract mixin class APIModel<T>` to `abstract class APIModel<T>`

@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:meta/meta.dart';
 import 'dart:async';
 
-typedef APIModelCompletion<T> = Function(T model);
+typedef APIModelCompletion<T> = void Function(T model);
 
-typedef APIModelStateChange<T> = Function(APIModelState state, T model);
+typedef APIModelStateChange<T> = void Function(APIModelState state, T model);
 
 enum APIModelState {
   ready,
@@ -18,9 +18,27 @@ enum APIModelState {
 /// Naming rules:
 /// - The prefix for input parameters: `in`
 ///   (e.g., inUsername, inPassword)
-///
 /// - The prefix for return values: `out`
 ///   (e.g., outLoginUser)
+///
+/// There are three ways to define APIModel:
+/// 1. Using mixin:
+///    Suitable for cases without special initialization work.
+///    ```dart
+///    class SomeAPIModel with APIModel<SomeAPIModel>
+///    ```
+/// 2. Using inheritance:
+///    Suitable for defining a base network request class that extends APIModel.
+///    ```dart
+///    class BaseAPIModel extends APIModel<SomeAPIModel>
+///    ```
+/// 3. Using a combination of mixin and inheritance (recommended):
+///    Suitable for custom network requests, data processing, and separation of concerns.
+///    For example, BaseRequest can handle Dio operations and data transformation,
+///    while APIModel provides request flow and encapsulation.
+///    ```dart
+///    class SomeAPIModel extends BaseRequest with APIModel<SomeAPIModel>
+///    ```
 abstract mixin class APIModel<T> {
   APIModelStateChange<T>? onStateChanged;
 
