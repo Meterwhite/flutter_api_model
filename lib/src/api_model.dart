@@ -39,25 +39,18 @@ enum APIModelState {
 ///    ```dart
 ///    class SomeAPIModel extends BaseRequest with APIModel<SomeAPIModel>
 ///    ```
-abstract mixin class APIModel<T> {
-  APIModelStateChange<T>? onStateChanged;
+abstract mixin class APIModel<OwnerType> {
+  APIModelStateChange<OwnerType>? onStateChanged;
 
   APIModelState get state => _state;
 
-  bool get hasError => outErrors.isNotEmpty;
-
-  /// Returns the last error if any.
-  dynamic get outError => outErrors.isNotEmpty ? outErrors.last : null;
-
-  final List outErrors = [];
-
-  APIModelCompletion<T>? _onComplete;
+  APIModelCompletion<OwnerType>? _onComplete;
 
   APIModelState _state = APIModelState.ready;
 
   void _updateState(APIModelState newState) {
     _state = newState;
-    onStateChanged?.call(_state, model);
+    onStateChanged?.call(_state, owner);
   }
 
   /// Starts the request.
@@ -72,7 +65,8 @@ abstract mixin class APIModel<T> {
   /// ```
   /// If `throwOnError` is `true`, any exceptions caught during the request
   /// will be rethrown at the APIModel layer.
-  Future<T> start({bool throwOnError = false}) async {
+  @mustCallSuper
+  Future<OwnerType> start({bool throwOnError = false}) async {
     if (_state != APIModelState.ready) {
       _updateState(APIModelState.ready);
     }
@@ -85,7 +79,7 @@ abstract mixin class APIModel<T> {
       await load();
       if (throwOnError && hasError) {
         // Throw the latest exception if needed
-        throw outError!;
+        throw _errors.last!;
       }
       if (state != APIModelState.completed) {
         throw "Method 'finalize()' should be called";
@@ -93,18 +87,19 @@ abstract mixin class APIModel<T> {
     } else {
       _updateState(APIModelState.blocked);
     }
-    return Future.value(model);
+    return Future.value(owner);
   }
 
   /// Registers a callback to be called when the request is completed.
   @mustCallSuper
-  APIModel<T> onCompletion(APIModelCompletion<T>? callback) {
+  APIModel<OwnerType> onCompletion(APIModelCompletion<OwnerType>? callback) {
     _onComplete = callback;
     return this;
   }
 
   /// Registers a callback to be called when the state changes.
-  APIModel<T> onStateChange(APIModelStateChange<T> callback) {
+  @mustCallSuper
+  APIModel<OwnerType> onStateChange(APIModelStateChange<OwnerType> callback) {
     onStateChanged = callback;
     return this;
   }
@@ -112,7 +107,6 @@ abstract mixin class APIModel<T> {
   /// Determines if the request has permission to proceed.
   /// If it returns `false`, the load() call will be blocked and the state will become `blocked`.
   /// Can be overridden using a mixin.
-  @protected
   bool hasPermission() {
     return true;
   }
@@ -125,7 +119,7 @@ abstract mixin class APIModel<T> {
   /// call `finalize()` when the model is complete, and you may call it multiple times.
   /// Any exception and error thrown can be recorded to `outError`,
   /// `outError` is a List type.
-  @protected
+  @visibleForOverriding
   Future<void> load();
 
   /// Called after the loading operation, typically changing the state to `APIModelState.completed`.
@@ -134,32 +128,32 @@ abstract mixin class APIModel<T> {
 
   /// Call this when the request is completed.
   /// If this method is not called, an exception will be thrown.
-  @mustCallSuper
   @protected
   void finalize() {
     _updateState(APIModelState.completed);
     didLoad();
-    _onComplete?.call(model);
+    _onComplete?.call(owner);
   }
 
-  /// Retrieves the model instance.
-  /// Can be overridden using a mixin.
-  T get model {
-    if (this is! T) {
+  /// Retrieves the object of the type that implements the final functionality.
+  /// The type of Owner must exactly match the type that implements the APIModel.
+  @useResult
+  OwnerType get owner {
+    if (this is! OwnerType) {
       throw TypeError();
     }
-    return this as T;
+    return this as OwnerType;
   }
+ 
+  // -------------  Error  --------------
+  
+  bool get hasError => _errors.isNotEmpty;
 
-  /// Assigns an error to `outError`. Assigning null is invalid.
-  @protected
-  set outError(dynamic error) {
-    if (error != null) {
-      outErrors.add(error);
-    }
-  }
+  List get allError => _errors;
+
+  final List _errors = [];
 
   /// Clears all errors.
   @protected
-  void clearError() => outErrors.clear();
+  void clearError() => _errors.clear();
 }

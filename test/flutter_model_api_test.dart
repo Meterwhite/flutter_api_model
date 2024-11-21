@@ -1,5 +1,6 @@
 import 'package:flutter_api_model/flutter_api_model.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 
 mixin APIWithLoginNeed {
@@ -9,17 +10,17 @@ mixin APIWithLoginNeed {
   }
 }
 
-class BaseAPI {
+class BaseRequest {
   Dio dio = Dio();
 
-  BaseAPI() {
+  BaseRequest() {
     dio.options.baseUrl = 'https://base_url.com';
     dio.options.headers = {'token': 'my_token'};
   }
 }
 
-class ProfileAPIModel extends BaseAPI
-    with APIModel<ProfileAPIModel>, APIWithLoginNeed {
+class ProfileAPIModel extends BaseRequest
+    with APIModel<ProfileAPIModel>, OutError<FlutterError>, APIWithLoginNeed {
   ProfileAPIModel({required this.inUserId});
 
   String inUserId;
@@ -31,7 +32,7 @@ class ProfileAPIModel extends BaseAPI
     try {
       final response = await dio.request('/user/profile');
       outUser = User.jsonToUser(response.data['user']);
-    } catch (e) {
+    } on FlutterError catch (e) {
       outError = e;
     } finally {
       finalize();
@@ -52,7 +53,6 @@ class User {
 void main() {
   test('adds one to input values', () async {
     final profileAPIModel = ProfileAPIModel(inUserId: 'userId');
-
     // await
     await profileAPIModel.start();
     if (!profileAPIModel.hasError) {
