@@ -39,8 +39,8 @@ enum APIModelState {
 ///    ```dart
 ///    class SomeAPIModel extends BaseRequest with APIModel<SomeAPIModel>
 ///    ```
-abstract mixin class APIModel<T> {
-  APIModelStateChange<T>? onStateChanged;
+abstract mixin class APIModel<Owner> {
+  APIModelStateChange<Owner>? onStateChanged;
 
   APIModelState get state => _state;
 
@@ -51,13 +51,13 @@ abstract mixin class APIModel<T> {
 
   final List outErrors = [];
 
-  APIModelCompletion<T>? _onComplete;
+  APIModelCompletion<Owner>? _onComplete;
 
   APIModelState _state = APIModelState.ready;
 
   void _updateState(APIModelState newState) {
     _state = newState;
-    onStateChanged?.call(_state, model);
+    onStateChanged?.call(_state, owner);
   }
 
   /// Starts the request.
@@ -72,7 +72,8 @@ abstract mixin class APIModel<T> {
   /// ```
   /// If `throwOnError` is `true`, any exceptions caught during the request
   /// will be rethrown at the APIModel layer.
-  Future<T> start({bool throwOnError = false}) async {
+  @mustCallSuper
+  Future<Owner> start({bool throwOnError = false}) async {
     if (_state != APIModelState.ready) {
       _updateState(APIModelState.ready);
     }
@@ -93,18 +94,19 @@ abstract mixin class APIModel<T> {
     } else {
       _updateState(APIModelState.blocked);
     }
-    return Future.value(model);
+    return Future.value(owner);
   }
 
   /// Registers a callback to be called when the request is completed.
   @mustCallSuper
-  APIModel<T> onCompletion(APIModelCompletion<T>? callback) {
+  APIModel<Owner> onCompletion(APIModelCompletion<Owner>? callback) {
     _onComplete = callback;
     return this;
   }
 
   /// Registers a callback to be called when the state changes.
-  APIModel<T> onStateChange(APIModelStateChange<T> callback) {
+  @mustCallSuper
+  APIModel<Owner> onStateChange(APIModelStateChange<Owner> callback) {
     onStateChanged = callback;
     return this;
   }
@@ -112,7 +114,6 @@ abstract mixin class APIModel<T> {
   /// Determines if the request has permission to proceed.
   /// If it returns `false`, the load() call will be blocked and the state will become `blocked`.
   /// Can be overridden using a mixin.
-  @protected
   bool hasPermission() {
     return true;
   }
@@ -125,7 +126,7 @@ abstract mixin class APIModel<T> {
   /// call `finalize()` when the model is complete, and you may call it multiple times.
   /// Any exception and error thrown can be recorded to `outError`,
   /// `outError` is a List type.
-  @protected
+  @visibleForOverriding
   Future<void> load();
 
   /// Called after the loading operation, typically changing the state to `APIModelState.completed`.
@@ -134,21 +135,21 @@ abstract mixin class APIModel<T> {
 
   /// Call this when the request is completed.
   /// If this method is not called, an exception will be thrown.
-  @mustCallSuper
   @protected
   void finalize() {
     _updateState(APIModelState.completed);
     didLoad();
-    _onComplete?.call(model);
+    _onComplete?.call(owner);
   }
 
   /// Retrieves the model instance.
   /// Can be overridden using a mixin.
-  T get model {
-    if (this is! T) {
+  @useResult
+  Owner get owner {
+    if (this is! Owner) {
       throw TypeError();
     }
-    return this as T;
+    return this as Owner;
   }
 
   /// Assigns an error to `outError`. Assigning null is invalid.

@@ -9,16 +9,16 @@ mixin APIWithLoginNeed {
   }
 }
 
-class BaseAPI {
+class BaseRequest {
   Dio dio = Dio();
 
-  BaseAPI() {
+  BaseRequest() {
     dio.options.baseUrl = 'https://base_url.com';
     dio.options.headers = {'token': 'my_token'};
   }
 }
 
-class ProfileAPIModel extends BaseAPI
+class ProfileAPIModel extends BaseRequest
     with APIModel<ProfileAPIModel>, APIWithLoginNeed {
   ProfileAPIModel({required this.inUserId});
 
@@ -52,7 +52,6 @@ class User {
 void main() {
   test('adds one to input values', () async {
     final profileAPIModel = ProfileAPIModel(inUserId: 'userId');
-
     // await
     await profileAPIModel.start();
     if (!profileAPIModel.hasError) {
