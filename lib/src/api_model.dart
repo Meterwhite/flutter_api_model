@@ -142,8 +142,8 @@ abstract mixin class APIModel<Owner> {
     _onComplete?.call(owner);
   }
 
-  /// Retrieves the model instance.
-  /// Can be overridden using a mixin.
+  /// Retrieves the object of the type that implements the final functionality.
+  /// The type of Owner must exactly match the type that implements the APIModel.
   @useResult
   Owner get owner {
     if (this is! Owner) {
