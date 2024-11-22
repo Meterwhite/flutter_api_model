@@ -1,7 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_api_model/flutter_api_model.dart';
-import 'package:flutter_api_model/src/out_error.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 
 mixin APIWithLoginNeed {
