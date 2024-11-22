@@ -39,19 +39,12 @@ enum APIModelState {
 ///    ```dart
 ///    class SomeAPIModel extends BaseRequest with APIModel<SomeAPIModel>
 ///    ```
-abstract mixin class APIModel<Owner> {
-  APIModelStateChange<Owner>? onStateChanged;
+abstract mixin class APIModel<OwnerType> {
+  APIModelStateChange<OwnerType>? onStateChanged;
 
   APIModelState get state => _state;
 
-  bool get hasError => outErrors.isNotEmpty;
-
-  /// Returns the last error if any.
-  dynamic get outError => outErrors.isNotEmpty ? outErrors.last : null;
-
-  final List outErrors = [];
-
-  APIModelCompletion<Owner>? _onComplete;
+  APIModelCompletion<OwnerType>? _onComplete;
 
   APIModelState _state = APIModelState.ready;
 
@@ -73,7 +66,7 @@ abstract mixin class APIModel<Owner> {
   /// If `throwOnError` is `true`, any exceptions caught during the request
   /// will be rethrown at the APIModel layer.
   @mustCallSuper
-  Future<Owner> start({bool throwOnError = false}) async {
+  Future<OwnerType> start({bool throwOnError = false}) async {
     if (_state != APIModelState.ready) {
       _updateState(APIModelState.ready);
     }
@@ -86,7 +79,7 @@ abstract mixin class APIModel<Owner> {
       await load();
       if (throwOnError && hasError) {
         // Throw the latest exception if needed
-        throw outError!;
+        throw _errors.last!;
       }
       if (state != APIModelState.completed) {
         throw "Method 'finalize()' should be called";
@@ -99,14 +92,14 @@ abstract mixin class APIModel<Owner> {
 
   /// Registers a callback to be called when the request is completed.
   @mustCallSuper
-  APIModel<Owner> onCompletion(APIModelCompletion<Owner>? callback) {
+  APIModel<OwnerType> onCompletion(APIModelCompletion<OwnerType>? callback) {
     _onComplete = callback;
     return this;
   }
 
   /// Registers a callback to be called when the state changes.
   @mustCallSuper
-  APIModel<Owner> onStateChange(APIModelStateChange<Owner> callback) {
+  APIModel<OwnerType> onStateChange(APIModelStateChange<OwnerType> callback) {
     onStateChanged = callback;
     return this;
   }
@@ -145,22 +138,22 @@ abstract mixin class APIModel<Owner> {
   /// Retrieves the object of the type that implements the final functionality.
   /// The type of Owner must exactly match the type that implements the APIModel.
   @useResult
-  Owner get owner {
-    if (this is! Owner) {
+  OwnerType get owner {
+    if (this is! OwnerType) {
       throw TypeError();
     }
-    return this as Owner;
+    return this as OwnerType;
   }
+ 
+  // -------------  Error  --------------
+  
+  bool get hasError => _errors.isNotEmpty;
 
-  /// Assigns an error to `outError`. Assigning null is invalid.
-  @protected
-  set outError(dynamic error) {
-    if (error != null) {
-      outErrors.add(error);
-    }
-  }
+  List get allError => _errors;
+
+  final List _errors = [];
 
   /// Clears all errors.
   @protected
-  void clearError() => outErrors.clear();
+  void clearError() => _errors.clear();
 }

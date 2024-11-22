@@ -64,7 +64,9 @@ class SomeAPIModel extends BaseRequest with APIModel<SomeAPIModel>
 ### Example: Defining `UserSearchAPIModel`:
 ```dart
 class UserSearchAPIModel extends BaseRequest<Map> 
-      with APIModel<UserSearchAPIModel>, APIWithLoginNeed {
+      with  APIModel<UserSearchAPIModel>, 
+            OutError<FlutterError>,
+            LoginNeed {
   UserSearchAPIModel({required this.inUserId});
   /// Input parameter
   String inUserId;
@@ -76,7 +78,7 @@ class UserSearchAPIModel extends BaseRequest<Map>
     try {
       final response = await dio.request('/user/profile');
       outUser = User.converFrom(jsonObject);
-    } catch (e) {
+    } catch on flutterError (e) {
       outError = e;
     } finally {
       finalize();
@@ -86,10 +88,10 @@ class UserSearchAPIModel extends BaseRequest<Map>
 
 /// Defines a base type if initialization work is needed
 /// Defining `BaseRequest` Class
-class BaseRequest<T> {
+class BaseRequest<DataType> {
   Dio dio = Dio();
 
-  T? data;
+  DataType? data;
 
   int? code;
 
@@ -108,8 +110,8 @@ class BaseRequest<T> {
 }
 
 /// Defines a mixin to override the `hasPermission` method, blocking calls when the user is not logged in.
-/// Defining `APIWithLoginNeed` Mixin
-mixin APIWithLoginNeed {
+/// Defining `LoginNeed` Mixin
+mixin LoginNeed {
   bool hasPermission() {
     return isLogin();
   }

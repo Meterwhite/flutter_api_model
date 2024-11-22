@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_api_model/flutter_api_model.dart';
+import 'package:flutter_api_model/src/out_error.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:dio/dio.dart';
 
@@ -19,7 +21,7 @@ class BaseRequest {
 }
 
 class ProfileAPIModel extends BaseRequest
-    with APIModel<ProfileAPIModel>, APIWithLoginNeed {
+    with APIModel<ProfileAPIModel>, OutError<FlutterError>, APIWithLoginNeed {
   ProfileAPIModel({required this.inUserId});
 
   String inUserId;
@@ -31,7 +33,7 @@ class ProfileAPIModel extends BaseRequest
     try {
       final response = await dio.request('/user/profile');
       outUser = User.jsonToUser(response.data['user']);
-    } catch (e) {
+    } on FlutterError catch (e) {
       outError = e;
     } finally {
       finalize();
