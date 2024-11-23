@@ -1,3 +1,8 @@
+## 2.0.5
+* OutError<OwnerType, ErrorType>
+* Updated examples.
+* Update Readme.
+
 ## 2.0.4
 * Support for cancellation.
 * Added APIModelException class.

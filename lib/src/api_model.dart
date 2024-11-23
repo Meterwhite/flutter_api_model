@@ -2,7 +2,6 @@ import 'package:meta/meta.dart';
 import 'exception.dart';
 import 'dart:async';
 
-
 typedef APIModelCallback<T> = void Function(T model);
 
 typedef APIModelStateChange<T> = void Function(APIModelState state, T model);

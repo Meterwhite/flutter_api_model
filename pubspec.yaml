@@ -1,6 +1,6 @@
 name: flutter_api_model
 description: High-level modeling of network requests, which manages input parameters and output parameters, following the "In-Out" naming convention.APIModel doesn't handle network requests directly; instead, it excels at network layer abstraction.
-version: 2.0.4
+version: 2.0.5
 homepage: https://github.com/Meterwhite/flutter_api_model
 documentation: https://github.com/Meterwhite/flutter_api_model
 

@@ -1,11 +1,28 @@
 import 'package:flutter_api_model/flutter_api_model.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:meta/meta.dart';
 import 'package:dio/dio.dart';
 
-mixin APIWithLoginNeed {
+mixin APIWithLoginNeed<T> on APIModel<T> {
+  @override
   bool hasPermission() {
     bool isLogin = something();
     return isLogin;
+  }
+}
+
+@optionalTypeArgs
+mixin CancelEnable<T> on APIModel<T>, BaseRequest {
+
+  @override
+  bool isCancellable() {
+    return true;
+  }
+
+  @override
+  void cancel() {
+    super.cancel();
+    cancelToken.cancel();
   }
 }
 
@@ -21,7 +38,11 @@ class BaseRequest {
 }
 
 class ProfileAPIModel extends BaseRequest
-    with APIModel<ProfileAPIModel>, OutError<SomeError>, APIWithLoginNeed {
+    with
+        APIModel<ProfileAPIModel>,
+        OutError<ProfileAPIModel, SomeError>,
+        APIWithLoginNeed,
+        CancelEnable {
   ProfileAPIModel({required this.inUserId});
 
   String inUserId;
@@ -44,16 +65,6 @@ class ProfileAPIModel extends BaseRequest
     }
   }
 
-  @override
-  bool isCancellable() {
-    return true;
-  }
-
-  @override
-  cancel() {
-    super.cancel();
-    cancelToken.cancel();
-  }
 }
 
 something() {}

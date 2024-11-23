@@ -65,8 +65,9 @@ class SomeAPIModel extends BaseRequest with APIModel<SomeAPIModel>
 ```dart
 class UserSearchAPIModel extends BaseRequest<Map> 
       with  APIModel<UserSearchAPIModel>, 
-            OutError<FlutterError>,
-            LoginNeed {
+            OutError<UserSearchAPIModel, FlutterError>,
+            LoginNeed,
+            CancelEnable {
   UserSearchAPIModel({required this.inUserId});
   /// Input parameter
   String inUserId;
@@ -90,16 +91,6 @@ class UserSearchAPIModel extends BaseRequest<Map>
     }
   }
 
-  @override
-  bool isCancellable() {
-    return true;
-  }
-
-  @override
-  cancel() {
-    super.cancel();
-    cancelToken.cancel();
-  }
 }
 
 /// Defines a base type if initialization work is needed
@@ -129,13 +120,31 @@ class BaseRequest<DataType> {
 
 /// Defines a mixin to override the `hasPermission` method, blocking calls when the user is not logged in.
 /// Defining `LoginNeed` Mixin.
-mixin LoginNeed {
+mixin LoginNeed<T> on APIModel<T> {
+
+  @override
   bool hasPermission() {
     return isLogin();
   }
 
   didBlock() {
     print('API request was blocked.');
+  }
+}
+
+/// Implementing Cancelable Requests with `CancelEnable` Mixin
+@optionalTypeArgs
+mixin CancelEnable<T> on APIModel<T>, BaseRequest {
+
+  @override
+  bool isCancellable() {
+    return true;
+  }
+
+  @override
+  void cancel() {
+    super.cancel();
+    cancelToken.cancel();
   }
 }
 
