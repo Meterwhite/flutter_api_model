@@ -1,5 +1,5 @@
 ## Features
-`Modeling of network requests,  which manages input parameters and output parameters, which follows the "In-Out" naming convention.`
+`High-level modeling of network requests, which manages input parameters and output parameters, following the "In-Out" naming convention.APIModel doesn't handle network requests directly; instead, it excels at network layer abstraction.`
 
 ## Getting started
 #### Installing
@@ -19,18 +19,18 @@ import 'package:flutter_api_model/flutter_api_model.dart';
 ```dart
 final model = await UserSearchAPIModel(inUserId: '2024').start();
 if (model.hasError) {
-  final error = model.outError;
+  error = model.outError;
 } else {
-  final user = model.outUser;
+  user = model.outUser;
 }
 ```
 #### Using callback
 ```dart
 UserSearchAPIModel(inUserId: '2024').onComplete((model) {
   if (!model.hasError) {
-    final user = model.outUser;
+    user = model.outUser;
   } else {
-    final error = model.outError;
+    error = model.outError;
   }
 }).start();
 
@@ -76,20 +76,34 @@ class UserSearchAPIModel extends BaseRequest<Map>
   @override
   load() async {
     try {
-      final response = await dio.request('/user/profile');
+      final response = await dio.request('/user/profile', cancelToken: cancelToken);
       outUser = User.converFrom(jsonObject);
-    } catch on flutterError (e) {
-      outError = e;
+    } on FlutterError catch (e) {
+        outError = e;
+    } catch (e) {
+      if (CancelToken.isCancel(e) == false) { 
+        // Handler error
+        throw e;
+      }
     } finally {
       finalize();
     }
+  }
+
+  @override
+  bool cancel() {
+    super.cancel();
+    cancelToken.cancel('Operation canceled by the user');
+    return true;
   }
 }
 
 /// Defines a base type if initialization work is needed
 /// Defining `BaseRequest` Class
 class BaseRequest<DataType> {
-  Dio dio = Dio();
+  final dio = Dio();
+
+  final cancelToken = CancelToken(); 
 
   DataType? data;
 
@@ -110,10 +124,14 @@ class BaseRequest<DataType> {
 }
 
 /// Defines a mixin to override the `hasPermission` method, blocking calls when the user is not logged in.
-/// Defining `LoginNeed` Mixin
+/// Defining `LoginNeed` Mixin.
 mixin LoginNeed {
   bool hasPermission() {
     return isLogin();
+  }
+
+  didBlock() {
+    print('API request was blocked.');
   }
 }
 

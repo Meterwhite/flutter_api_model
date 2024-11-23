@@ -3,7 +3,7 @@ import 'api_model.dart';
 extension APIModelOnList on List<APIModel> {
   /// Executes the list of [APIModel] instances sequentially.
   ///
-  /// [onCompletion] is an optional callback that is called when all requests have been processed.
+  /// [onComplete] is an optional callback that is called when all requests have been processed.
   /// The callback receives three lists:
   /// - [successes]: Requests that finalized successfully.
   /// - [failures]: Requests that failed with an error.
@@ -15,7 +15,7 @@ extension APIModelOnList on List<APIModel> {
       List<APIModel> successes,
       List<APIModel> failures,
       List<APIModel> blocked,
-    )? onCompletion,
+    )? onComplete,
     bool haltOnError = true,
   }) async {
     var successes = <APIModel>[];
@@ -34,12 +34,12 @@ extension APIModelOnList on List<APIModel> {
         successes.add(api);
       }
     }
-    onCompletion?.call(successes, failures, blocked);
+    onComplete?.call(successes, failures, blocked);
   }
 
   /// Executes the list of [APIModel] instances concurrently.
   ///
-  /// [onCompletion] is an optional callback that is called when all requests have been processed.
+  /// [onComplete] is an optional callback that is called when all requests have been processed.
   /// The callback receives three lists:
   /// - [successes]: Requests that finalized successfully.
   /// - [failures]: Requests that failed with an error.
@@ -49,7 +49,7 @@ extension APIModelOnList on List<APIModel> {
       List<APIModel> successes,
       List<APIModel> failures,
       List<APIModel> blocked,
-    )? onCompletion,
+    )? onComplete,
   }) async {
     List<Future> executions = [];
     for (var element in this) {
@@ -68,6 +68,6 @@ extension APIModelOnList on List<APIModel> {
         successes.add(api);
       }
     }
-    onCompletion?.call(successes, failures, blocked);
+    onComplete?.call(successes, failures, blocked);
   }
 }

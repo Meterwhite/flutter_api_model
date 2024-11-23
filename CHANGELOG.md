@@ -1,3 +1,7 @@
+## 2.0.4
+* Support for cancellation.
+* Added APIModelException class.
+
 ## 2.0.3
 * Refactored `outError` to a standalone mixin, separated from `APIModel`. 
 * Updated examples.
