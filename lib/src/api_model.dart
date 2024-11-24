@@ -99,8 +99,9 @@ abstract mixin class APIModel<OwnerType> {
         // Throw the latest exception if needed
         throw _errors.last!;
       }
-      if (state != APIModelState.completed || state != APIModelState.canceled) {
-        throw APIModelException("Method 'finalize()' should be called.");
+      if (state != APIModelState.completed && state != APIModelState.canceled) {
+        throw APIModelException(
+            "Method 'finalize()' should be called in class: $runtimeType.");
       }
     } else {
       // Block API

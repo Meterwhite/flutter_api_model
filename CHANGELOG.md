@@ -1,3 +1,6 @@
+## 2.0.6
+* Fix bug
+
 ## 2.0.5
 * OutError<OwnerType, ErrorType>
 * Updated examples.
